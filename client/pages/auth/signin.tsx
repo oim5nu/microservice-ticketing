@@ -38,17 +38,12 @@ const useStyles = makeStyles((theme: Theme) =>
 interface FormValues {
   email: string;
   password: string;
-  confirmPassword: string;
 }
 
 const formStatusProps: FormStatusProps = {
   success: {
-    message: 'Signed up successfully.',
+    message: 'Signed in successfully.',
     type: 'success',
-  },
-  duplicate: {
-    message: 'Email-id already exist. Please use different email-id.',
-    type: 'error',
   },
   error: {
     message: 'Something went wrong. Please try again.',
@@ -56,19 +51,14 @@ const formStatusProps: FormStatusProps = {
   },
 };
 
-const SignUpSchema = Yup.object().shape({
+const SignInSchema = Yup.object().shape({
   email: Yup.string().email('Please enter invalid email').required('Required'),
   password: Yup.string()
     .matches(/^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[!@#$%^&*()]).{4,20}\S$/)
     .required('Required'),
-  confirmPassword: Yup.string()
-    .required('Required')
-    .test('password-match', 'Password must match', function (value) {
-      return this.parent.password === value;
-    }),
 });
 
-const SignUp: React.FC<{}> = () => {
+const SignIn: React.FC<{}> = () => {
   const classes = useStyles();
   const [displayFormStatus, setDisplayFormStatus] = useState(false);
   const [formStatus, setFormStatus] = useState<FormStatus>({
@@ -76,10 +66,10 @@ const SignUp: React.FC<{}> = () => {
     type: '',
   });
 
-  const doSignUpRequest = async (data: FormValues, resetForm: Function) => {
+  const doSignInRequest = async (data: FormValues, resetForm: Function) => {
     try {
       // API call integration will be here. Handle success / error response accordingly.
-      const response = await axios.post('/api/users/signup', data);
+      const response = await axios.post('/api/users/signin', data);
       console.log(response.data);
       if (response.data) {
         setFormStatus(formStatusProps.success);
@@ -88,15 +78,8 @@ const SignUp: React.FC<{}> = () => {
       }
     } catch (error) {
       console.log('error', error.response);
-      const errorResponse = error.response;
-      if (
-        errorResponse.data.errors[0].message === 'Email in use' &&
-        errorResponse.status === 400
-      ) {
-        setFormStatus(formStatusProps.duplicate);
-      } else {
-        setFormStatus(formStatusProps.error);
-      }
+      //const errorResponse = error.response;
+      setFormStatus(formStatusProps.error);
     } finally {
       setDisplayFormStatus(true);
     }
@@ -108,11 +91,10 @@ const SignUp: React.FC<{}> = () => {
         initialValues={{
           email: '',
           password: '',
-          confirmPassword: '',
         }}
-        validationSchema={SignUpSchema}
+        validationSchema={SignInSchema}
         onSubmit={(values: FormValues, actions: FormikHelpers<FormValues>) => {
-          doSignUpRequest(values, actions.resetForm);
+          doSignInRequest(values, actions.resetForm);
           setTimeout(() => {
             console.log(JSON.stringify(values, null, 2));
             actions.setSubmitting(false);
@@ -131,7 +113,7 @@ const SignUp: React.FC<{}> = () => {
 
           return (
             <Form>
-              <h1 className={classes.title}>Sign Up</h1>
+              <h1 className={classes.title}>Sign In</h1>
               <Grid container justify="space-around" direction="row">
                 <Grid
                   className={classes.textField}
@@ -180,34 +162,6 @@ const SignUp: React.FC<{}> = () => {
                   />
                 </Grid>
                 <Grid
-                  className={classes.textField}
-                  item
-                  lg={10}
-                  md={10}
-                  sm={10}
-                  xs={10}
-                >
-                  <TextField
-                    name="confirmPassword"
-                    id="confirmPassword"
-                    label="Confirm password"
-                    value={values.confirmPassword}
-                    type="password"
-                    helperText={
-                      errors.confirmPassword && touched.confirmPassword
-                        ? errors.confirmPassword
-                        : 'Re-enter password to confirm'
-                    }
-                    error={
-                      errors.confirmPassword && touched.confirmPassword
-                        ? true
-                        : false
-                    }
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                  />
-                </Grid>
-                <Grid
                   className={classes.submitButton}
                   item
                   lg={10}
@@ -221,7 +175,7 @@ const SignUp: React.FC<{}> = () => {
                     color="primary"
                     disabled={isSubmitting}
                   >
-                    Sign Up
+                    Sign In
                   </Button>
                   {displayFormStatus && (
                     <div className="formStatus">
@@ -246,4 +200,4 @@ const SignUp: React.FC<{}> = () => {
   );
 };
 
-export default SignUp;
+export default SignIn;
