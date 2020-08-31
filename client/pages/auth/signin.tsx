@@ -93,8 +93,11 @@ const SignIn: React.FC<{}> = () => {
           password: '',
         }}
         validationSchema={SignInSchema}
-        onSubmit={(values: FormValues, actions: FormikHelpers<FormValues>) => {
-          doSignInRequest(values, actions.resetForm);
+        onSubmit={async (
+          values: FormValues,
+          actions: FormikHelpers<FormValues>
+        ) => {
+          await doSignInRequest(values, actions.resetForm);
           setTimeout(() => {
             console.log(JSON.stringify(values, null, 2));
             actions.setSubmitting(false);

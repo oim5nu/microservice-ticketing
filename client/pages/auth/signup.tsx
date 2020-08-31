@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   Grid,
   TextField,
@@ -12,7 +12,8 @@ import * as Yup from 'yup';
 import axios from 'axios';
 import router from 'next/router';
 import { FormStatus, FormStatusProps } from '../../common/common-types';
-//import useRequest from '../../hooks/use-request';
+import useIsMountedRef from '../../hooks/use-is-mounted-ref';
+import useRequest from '../../hooks/use-request';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -76,19 +77,38 @@ const SignUp: React.FC<{}> = () => {
     type: '',
   });
 
-  const doSignUpRequest = async (data: FormValues, resetForm: Function) => {
+  const isMountedRef = useIsMountedRef();
+
+  const handleSubmit = async (
+    values: FormValues,
+    actions: FormikHelpers<FormValues>
+  ) => {
     try {
       // API call integration will be here. Handle success / error response accordingly.
-      const response = await axios.post('/api/users/signup', data);
-      console.log(response.data);
+      const response = await axios.post('/api/users/signup', values);
+      console.log('response.data', response.data);
       if (response.data) {
-        setFormStatus(formStatusProps.success);
-        resetForm({});
-        router.push('/');
+        if (isMountedRef.current) {
+          console.log('signup form is mounted');
+          setFormStatus(formStatusProps.success);
+          actions.resetForm({});
+          setTimeout(() => {
+            console.log(JSON.stringify(values, null, 2));
+            actions.setSubmitting(false);
+          }, 500);
+          setTimeout(() => {
+            console.log('redirecting to root');
+            router.push('/');
+          }, 1000);
+        } else {
+          console.log('signup form is unmounted');
+          router.push('/');
+        }
       }
     } catch (error) {
-      console.log('error', error.response);
+      console.log('error.response', error.response);
       const errorResponse = error.response;
+
       if (
         errorResponse.data.errors[0].message === 'Email in use' &&
         errorResponse.status === 400
@@ -102,6 +122,32 @@ const SignUp: React.FC<{}> = () => {
     }
   };
 
+  // const doSignUpRequest = async (data: FormValues, resetForm: Function) => {
+  //   try {
+  //     // API call integration will be here. Handle success / error response accordingly.
+  //     const response = await axios.post('/api/users/signup', data);
+  //     console.log(response.data);
+  //     if (response.data) {
+  //       setFormStatus(formStatusProps.success);
+  //       resetForm({});
+  //       //router.push('/');
+  //     }
+  //   } catch (error) {
+  //     console.log('error', error.response);
+  //     const errorResponse = error.response;
+  //     if (
+  //       errorResponse.data.errors[0].message === 'Email in use' &&
+  //       errorResponse.status === 400
+  //     ) {
+  //       setFormStatus(formStatusProps.duplicate);
+  //     } else {
+  //       setFormStatus(formStatusProps.error);
+  //     }
+  //   } finally {
+  //     setDisplayFormStatus(true);
+  //   }
+  // };
+
   return (
     <div className={classes.root}>
       <Formik
@@ -111,13 +157,7 @@ const SignUp: React.FC<{}> = () => {
           confirmPassword: '',
         }}
         validationSchema={SignUpSchema}
-        onSubmit={(values: FormValues, actions: FormikHelpers<FormValues>) => {
-          doSignUpRequest(values, actions.resetForm);
-          setTimeout(() => {
-            console.log(JSON.stringify(values, null, 2));
-            actions.setSubmitting(false);
-          }, 500);
-        }}
+        onSubmit={handleSubmit}
       >
         {(props: FormikProps<FormValues>) => {
           const {
