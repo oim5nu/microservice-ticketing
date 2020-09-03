@@ -8,12 +8,16 @@ metadata:
 spec:
   rules:
     - host: ticketing.dev
-    # - host: ticketing.local
+      # - host: ticketing.local
       http:
         paths:
           - path: /api/users/?(.*)
             backend:
               serviceName: auth-srv
+              servicePort: 3000
+          - path: /api/tickets/?(.*)
+            backend:
+              serviceName: tickets-srv
               servicePort: 3000
           - path: /?(.*)
             backend:

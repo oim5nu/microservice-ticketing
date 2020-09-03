@@ -10,8 +10,8 @@ build:
   googleCloudBuild:
     projectId: ticketing-dev-287205
   artifacts:
-    - image: us.gcr.io/ticketing-dev-287205/auth
-    #- image: yuanpengzheng/auth
+    - image: gcr.io/ticketing-dev-287205/auth
+      #- image: yuanpengzheng/auth
       context: auth
       docker:
         dockerfile: Dockerfile
@@ -19,12 +19,21 @@ build:
         manual:
           - src: 'src/**/*.ts'
             dest: .
-    - image: us.gcr.io/ticketing-dev-287205/client
-    #- image: yuanpengzheng/client
+    - image: gcr.io/ticketing-dev-287205/client
+      #- image: yuanpengzheng/client
       context: client
       docker:
         dockerfile: Dockerfile
       sync:
         manual:
           - src: '**/*.ts'
+            dest: .
+    - image: gcr.io/ticketing-dev-287205/tickets
+      #- image: yuanpengzheng/tickets
+      context: tickets
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: 'src/**/*.ts'
             dest: .
